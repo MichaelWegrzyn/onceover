@@ -25,7 +25,16 @@
     "ai",
     "agent"
   ],
+  "author": "Michael Wegrzyn",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MichaelWegrzyn/onceover.git"
+  },
+  "homepage": "https://github.com/MichaelWegrzyn/onceover",
+  "bugs": {
+    "url": "https://github.com/MichaelWegrzyn/onceover/issues"
+  },
   "engines": {
     "node": ">=18"
   },
