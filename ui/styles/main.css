@@ -1,0 +1,314 @@
+@import "tailwindcss";
+
+/* ===== Custom theme tokens ===== */
+@theme {
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  /* Light diff colors (GitHub style) */
+  --color-diff-add: #dafbe1;
+  --color-diff-add-highlight: #aceebb;
+  --color-diff-delete: #ffebe9;
+  --color-diff-delete-highlight: #ffc1ba;
+  --color-diff-hunk: #f0f6ff;
+  --color-diff-gutter-add: #ccffd8;
+  --color-diff-gutter-delete: #ffd7d5;
+  /* Dark diff colors (GitHub dark style) */
+  --color-diff-add-dark: #12261e;
+  --color-diff-add-highlight-dark: #1a4028;
+  --color-diff-delete-dark: #2d1519;
+  --color-diff-delete-highlight-dark: #5c2125;
+  --color-diff-hunk-dark: #121d2f;
+  --color-diff-gutter-add-dark: #12261e;
+  --color-diff-gutter-delete-dark: #2d1519;
+}
+
+/* ===== Dark mode class strategy ===== */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===== Base styles ===== */
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+}
+
+/* ===== react-diff-view library overrides ===== */
+.diff {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  --diff-background-color: theme(--color-white);
+  --diff-text-color: theme(--color-gray-800);
+  --diff-gutter-insert-background-color: var(--color-diff-gutter-add);
+  --diff-gutter-delete-background-color: var(--color-diff-gutter-delete);
+  --diff-gutter-insert-text-color: theme(--color-gray-500);
+  --diff-gutter-delete-text-color: theme(--color-gray-500);
+  --diff-code-insert-background-color: var(--color-diff-add);
+  --diff-code-delete-background-color: var(--color-diff-delete);
+  --diff-code-insert-text-color: theme(--color-gray-800);
+  --diff-code-delete-text-color: theme(--color-gray-800);
+  --diff-code-insert-edit-background-color: var(--color-diff-add-highlight);
+  --diff-code-delete-edit-background-color: var(--color-diff-delete-highlight);
+  --diff-code-insert-edit-text-color: theme(--color-gray-900);
+  --diff-code-delete-edit-text-color: theme(--color-gray-900);
+  --diff-code-selected-background-color: theme(--color-blue-100);
+}
+
+.dark .diff {
+  --diff-background-color: #0d1117;
+  --diff-text-color: theme(--color-gray-300);
+  --diff-gutter-insert-background-color: var(--color-diff-gutter-add-dark);
+  --diff-gutter-delete-background-color: var(--color-diff-gutter-delete-dark);
+  --diff-gutter-insert-text-color: theme(--color-gray-500);
+  --diff-gutter-delete-text-color: theme(--color-gray-500);
+  --diff-code-insert-background-color: var(--color-diff-add-dark);
+  --diff-code-delete-background-color: var(--color-diff-delete-dark);
+  --diff-code-insert-text-color: theme(--color-gray-300);
+  --diff-code-delete-text-color: theme(--color-gray-300);
+  --diff-code-insert-edit-background-color: var(--color-diff-add-highlight-dark);
+  --diff-code-delete-edit-background-color: var(--color-diff-delete-highlight-dark);
+  --diff-code-insert-edit-text-color: theme(--color-gray-200);
+  --diff-code-delete-edit-text-color: theme(--color-gray-200);
+  --diff-code-selected-background-color: theme(--color-blue-900);
+}
+
+/* Table layout */
+.diff table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.diff td {
+  border: none;
+  vertical-align: top;
+}
+
+.diff-line {
+  border: none;
+}
+
+/* Gutter (line numbers) */
+.diff-gutter {
+  width: 64px;
+  min-width: 64px;
+  padding: 0 10px;
+  text-align: right;
+  user-select: none;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Code cells */
+.diff-code {
+  padding: 0 16px;
+  white-space: pre;
+  overflow-x: auto;
+  word-break: keep-all;
+}
+
+/* Hunk headers */
+.diff-hunk-header,
+.diff-hunk-header-gutter,
+.diff-hunk-header-content {
+  background: var(--color-diff-hunk);
+}
+
+.dark .diff-hunk-header,
+.dark .diff-hunk-header-gutter,
+.dark .diff-hunk-header-content {
+  background: var(--color-diff-hunk-dark);
+}
+
+.diff-hunk-header-content {
+  font-style: italic;
+  font-size: 12px;
+  padding: 6px 16px;
+  opacity: 0.7;
+}
+
+/* Split view gutter sizing */
+.diff-split .diff-gutter {
+  width: 52px;
+  min-width: 52px;
+  padding: 0 8px;
+}
+
+/* Split view: center divider between old and new sides */
+.diff-split td.diff-gutter:nth-child(3) {
+  border-left: 1px solid theme(--color-gray-200);
+}
+
+.dark .diff-split td.diff-gutter:nth-child(3) {
+  border-left: 1px solid theme(--color-gray-700);
+}
+
+/* Unified view: wider gutters */
+.diff-unified .diff-gutter {
+  width: 56px;
+  min-width: 56px;
+}
+
+/* ===== Syntax highlighting (Prism token classes) ===== */
+/* Light theme - GitHub-inspired */
+.diff .token.comment,
+.diff .token.prolog,
+.diff .token.doctype,
+.diff .token.cdata {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.diff .token.punctuation {
+  color: #24292e;
+}
+
+.diff .token.property,
+.diff .token.tag,
+.diff .token.boolean,
+.diff .token.number,
+.diff .token.constant,
+.diff .token.symbol {
+  color: #005cc5;
+}
+
+.diff .token.selector,
+.diff .token.attr-name,
+.diff .token.string,
+.diff .token.char,
+.diff .token.builtin {
+  color: #032f62;
+}
+
+.diff .token.operator,
+.diff .token.entity,
+.diff .token.url {
+  color: #d73a49;
+}
+
+.diff .token.atrule,
+.diff .token.attr-value,
+.diff .token.keyword {
+  color: #d73a49;
+}
+
+.diff .token.function,
+.diff .token.class-name {
+  color: #6f42c1;
+}
+
+.diff .token.regex,
+.diff .token.important,
+.diff .token.variable {
+  color: #e36209;
+}
+
+.diff .token.important,
+.diff .token.bold {
+  font-weight: bold;
+}
+
+.diff .token.italic {
+  font-style: italic;
+}
+
+/* Dark theme syntax highlighting */
+.dark .diff .token.comment,
+.dark .diff .token.prolog,
+.dark .diff .token.doctype,
+.dark .diff .token.cdata {
+  color: #8b949e;
+  font-style: italic;
+}
+
+.dark .diff .token.punctuation {
+  color: #c9d1d9;
+}
+
+.dark .diff .token.property,
+.dark .diff .token.tag,
+.dark .diff .token.boolean,
+.dark .diff .token.number,
+.dark .diff .token.constant,
+.dark .diff .token.symbol {
+  color: #79c0ff;
+}
+
+.dark .diff .token.selector,
+.dark .diff .token.attr-name,
+.dark .diff .token.string,
+.dark .diff .token.char,
+.dark .diff .token.builtin {
+  color: #a5d6ff;
+}
+
+.dark .diff .token.operator,
+.dark .diff .token.entity,
+.dark .diff .token.url {
+  color: #ff7b72;
+}
+
+.dark .diff .token.atrule,
+.dark .diff .token.attr-value,
+.dark .diff .token.keyword {
+  color: #ff7b72;
+}
+
+.dark .diff .token.function,
+.dark .diff .token.class-name {
+  color: #d2a8ff;
+}
+
+.dark .diff .token.regex,
+.dark .diff .token.important,
+.dark .diff .token.variable {
+  color: #ffa657;
+}
+
+/* ===== Custom scrollbar ===== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: theme(--color-gray-300);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: theme(--color-gray-400);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: theme(--color-gray-600);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: theme(--color-gray-500);
+}
+
+/* Diff table horizontal scrollbar */
+.diff-table-wrap {
+  overflow-x: auto;
+}
+
+.diff-table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.diff-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.diff-table-wrap::-webkit-scrollbar-thumb {
+  background: theme(--color-gray-300);
+  border-radius: 3px;
+}
+
+.dark .diff-table-wrap::-webkit-scrollbar-thumb {
+  background: theme(--color-gray-600);
+}

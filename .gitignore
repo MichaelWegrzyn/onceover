@@ -1,0 +1,8 @@
+node_modules/
+build/
+dist/
+*.tgz
+plans/
+spec.md
+CLAUDE.md
+.claude/

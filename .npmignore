@@ -1,0 +1,8 @@
+ui/
+plans/
+.claude/
+vite.config.js
+spec.md
+CLAUDE.md
+node_modules/
+.gitignore
