@@ -1,6 +1,6 @@
 {
   "name": "onceover",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Give your code a once-over. Beautiful git diff viewer in your browser — one command, zero config.",
   "type": "module",
   "bin": {
