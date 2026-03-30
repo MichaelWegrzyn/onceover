@@ -10,6 +10,18 @@ npx onceover
 
 That's it. A browser tab opens with a GitHub-quality diff view. No server, no config, no install. The CLI exits immediately — nothing left running.
 
+![onceover demo](demo.gif)
+
+## Inline Feedback
+
+Spot something? Click the `+` on any line number to leave a comment. A review sidebar builds a structured prompt as you go — file paths, line numbers, and your instructions. Hit **Copy Review** and paste it straight into Claude Code, Cursor, or any AI coding tool.
+
+```
+npx onceover → scan → comment → copy → paste into terminal → agent fixes → npx onceover again
+```
+
+Comments persist across refreshes via localStorage (keyed by diff content). New diff = clean slate.
+
 ## Usage
 
 ```bash
