@@ -27,7 +27,7 @@ function FilePathDisplay({ path, isActive }) {
   );
 }
 
-export default function FileTree({ files, onFileClick, activeFile }) {
+export default function FileTree({ files, onFileClick, activeFile, commentCounts = {} }) {
   return (
     <nav className="custom-scrollbar hidden w-72 shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50/80 md:block dark:border-gray-700/80 dark:bg-[#0d1117]" aria-label="Changed files">
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50/95 px-4 py-3 backdrop-blur-sm dark:border-gray-700/80 dark:bg-[#0d1117]/95">
@@ -40,6 +40,7 @@ export default function FileTree({ files, onFileClick, activeFile }) {
           const path = getFilePath(file);
           const stats = getFileStats(file);
           const isActive = activeFile === path;
+          const commentCount = commentCounts[path] || 0;
 
           return (
             <li
@@ -55,13 +56,20 @@ export default function FileTree({ files, onFileClick, activeFile }) {
               <span className="min-w-0 font-mono">
                 <FilePathDisplay path={path} isActive={isActive} />
               </span>
-              <span className="flex shrink-0 gap-1.5 self-start pt-0.5 text-[11px] font-semibold tabular-nums">
-                {stats.additions > 0 && (
-                  <span className="text-green-600 dark:text-green-400">+{stats.additions}</span>
+              <span className="flex shrink-0 items-center gap-1.5 self-start pt-0.5">
+                {commentCount > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white">
+                    {commentCount}
+                  </span>
                 )}
-                {stats.deletions > 0 && (
-                  <span className="text-red-600 dark:text-red-400">-{stats.deletions}</span>
-                )}
+                <span className="flex gap-1.5 text-[11px] font-semibold tabular-nums">
+                  {stats.additions > 0 && (
+                    <span className="text-green-600 dark:text-green-400">+{stats.additions}</span>
+                  )}
+                  {stats.deletions > 0 && (
+                    <span className="text-red-600 dark:text-red-400">-{stats.deletions}</span>
+                  )}
+                </span>
               </span>
             </li>
           );
