@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Diff, Hunk, tokenize, markEdits } from 'react-diff-view';
+import { Diff, Hunk, tokenize, markEdits, getChangeKey } from 'react-diff-view';
 import { refractor } from 'refractor';
+import { CommentForm, CommentBar } from './InlineComment';
 
 // Adapter: refractor v4 returns a Root node from highlight(),
 // but react-diff-view expects the v3 API that returned an array of nodes.
@@ -70,6 +71,14 @@ export function getFileStats(file) {
   return { additions, deletions };
 }
 
+// Get the new-file line number for a change (used for export)
+export function getNewLineNumber(change) {
+  if (change.isInsert) return change.lineNumber;
+  if (change.isNormal) return change.newLineNumber;
+  // For deletes, there's no new line number
+  return change.lineNumber;
+}
+
 function useTokens(hunks, language) {
   return useMemo(() => {
     if (!hunks?.length || !language) return undefined;
@@ -134,12 +143,96 @@ function CopyPathButton({ path }) {
   );
 }
 
-function FileDiff({ file, viewType, isCollapsed, onToggleCollapse }) {
+function CommentWidget({ changeKey, filePath, comment, activeCommentKey, onSave, onCancel, onEdit, onDelete }) {
+  const isEditing = activeCommentKey === changeKey;
+
+  if (!isEditing && !comment) return null;
+
+  return (
+    <div id={`comment-${changeKey}`}>
+      {isEditing ? (
+        <CommentForm
+          initialText={comment?.text || ''}
+          onSave={(text) => onSave(changeKey, filePath, text)}
+          onCancel={onCancel}
+        />
+      ) : (
+        <CommentBar
+          text={comment.text}
+          onEdit={() => onEdit(changeKey)}
+          onDelete={() => onDelete(changeKey)}
+        />
+      )}
+    </div>
+  );
+}
+
+function FileDiff({ file, viewType, isCollapsed, onToggleCollapse, comments, activeCommentKey, onGutterClick, onSaveComment, onCancelComment, onEditComment, onDeleteComment }) {
   const path = getFilePath(file);
   const language = getLanguage(path);
   const tokens = useTokens(file.hunks, language);
   const stats = getFileStats(file);
   const isBinary = file.hunks.length === 0;
+
+  // Build widgets map: changeKey -> ReactElement for comments
+  const widgets = useMemo(() => {
+    const w = {};
+    // All changes across hunks
+    const allChanges = file.hunks.flatMap((h) => h.changes);
+    for (const change of allChanges) {
+      const key = getChangeKey(change);
+      const comment = comments[key];
+      const isActive = activeCommentKey === key;
+      if (comment || isActive) {
+        w[key] = (
+          <CommentWidget
+            changeKey={key}
+            filePath={path}
+            comment={comment}
+            activeCommentKey={activeCommentKey}
+            onSave={onSaveComment}
+            onCancel={onCancelComment}
+            onEdit={onEditComment}
+            onDelete={onDeleteComment}
+          />
+        );
+      }
+    }
+    return w;
+  }, [file.hunks, comments, activeCommentKey, path, onSaveComment, onCancelComment, onEditComment, onDeleteComment]);
+
+  // Custom gutter renderer to add the + button
+  const renderGutter = useMemo(() => {
+    return function GutterRenderer({ side, renderDefault, wrapInAnchor, change }) {
+      // Show + only on the "new" side gutter (side is always "old" or "new")
+      const showButton = side === 'new';
+      // Don't show + on delete lines
+      const isDelete = change?.isDelete;
+
+      return (
+        <div className="gutter-content">
+          {wrapInAnchor(renderDefault())}
+          {showButton && !isDelete && (
+            <button
+              className="gutter-add-btn"
+              aria-label="Add comment"
+              title="Add comment"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!change) return;
+                const key = getChangeKey(change);
+                // Pass the closest table row so App can preserve scroll position
+                const row = e.currentTarget.closest('tr');
+                onGutterClick(key, path, change, row);
+              }}
+            >
+              +
+            </button>
+          )}
+        </div>
+      );
+    };
+  }, [onGutterClick, path]);
 
   return (
     <div
@@ -178,7 +271,14 @@ function FileDiff({ file, viewType, isCollapsed, onToggleCollapse }) {
       {/* Diff content */}
       {!isCollapsed && !isBinary && (
         <div className="diff-table-wrap">
-          <Diff viewType={viewType} diffType={file.type} hunks={file.hunks} tokens={tokens}>
+          <Diff
+            viewType={viewType}
+            diffType={file.type}
+            hunks={file.hunks}
+            tokens={tokens}
+            widgets={widgets}
+            renderGutter={renderGutter}
+          >
             {(hunks) => hunks.map((hunk) => (
               <Hunk key={hunk.content} hunk={hunk} />
             ))}
@@ -194,11 +294,18 @@ function FileDiff({ file, viewType, isCollapsed, onToggleCollapse }) {
   );
 }
 
-export default function DiffViewer({ files, viewType, collapsedFiles, onToggleCollapse }) {
+export default function DiffViewer({ files, viewType, collapsedFiles, onToggleCollapse, comments, activeCommentKey, onGutterClick, onSaveComment, onCancelComment, onEditComment, onDeleteComment }) {
   return (
     <div className="p-4">
       {files.map((file) => {
         const path = getFilePath(file);
+        // Filter comments for this file
+        const fileComments = {};
+        for (const [key, comment] of Object.entries(comments)) {
+          if (comment.filePath === path) {
+            fileComments[key] = comment;
+          }
+        }
         return (
           <FileDiff
             key={path}
@@ -206,6 +313,13 @@ export default function DiffViewer({ files, viewType, collapsedFiles, onToggleCo
             viewType={viewType}
             isCollapsed={collapsedFiles.has(path)}
             onToggleCollapse={() => onToggleCollapse(path)}
+            comments={fileComments}
+            activeCommentKey={activeCommentKey}
+            onGutterClick={onGutterClick}
+            onSaveComment={onSaveComment}
+            onCancelComment={onCancelComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
           />
         );
       })}

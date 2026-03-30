@@ -96,6 +96,63 @@
   user-select: none;
   font-size: 12px;
   opacity: 0.7;
+  position: relative;
+}
+
+/* Gutter + button for adding comments */
+.gutter-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.gutter-add-btn {
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: theme(--color-blue-500);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s;
+  border: none;
+  padding: 0;
+}
+
+.diff-line:hover .gutter-add-btn {
+  opacity: 1;
+}
+
+.gutter-add-btn:hover {
+  background: theme(--color-blue-600);
+}
+
+.dark .gutter-add-btn {
+  background: theme(--color-blue-600);
+}
+
+.dark .gutter-add-btn:hover {
+  background: theme(--color-blue-500);
+}
+
+/* Widget rows (comment forms/bars) */
+.diff-widget {
+  background: transparent;
+}
+
+.diff-widget td {
+  padding: 0;
 }
 
 /* Code cells */
