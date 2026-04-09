@@ -194,14 +194,15 @@ export default function App() {
   };
 
   const handleSaveComment = (changeKey, filePath, text) => {
-    const key = scopedKey(filePath, changeKey);
-    const lineNumber = findLineNumberForKey(changeKey);
+    // changeKey is already file-scoped from CommentWidget, extract raw key for line lookup
+    const rawKey = changeKey.slice(filePath.length + 1);
+    const lineNumber = findLineNumberForKey(rawKey);
     setComments((prev) => {
       // Auto-open sidebar on first comment
       if (Object.keys(prev).length === 0) {
         setReviewSidebarOpen(true);
       }
-      return { ...prev, [key]: { filePath, lineNumber, text } };
+      return { ...prev, [changeKey]: { filePath, lineNumber, text } };
     });
     setActiveCommentKey(null);
   };
