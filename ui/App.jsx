@@ -165,10 +165,13 @@ export default function App() {
     });
   };
 
-  // Comment handlers
+  // Comment handlers — scope keys by file path to avoid collisions across files
+  const scopedKey = (filePath, changeKey) => `${filePath}:${changeKey}`;
+
   const handleGutterClick = (changeKey, filePath, change, targetElement) => {
+    const key = scopedKey(filePath, changeKey);
     // If already editing this key, do nothing
-    if (activeCommentKey === changeKey) return;
+    if (activeCommentKey === key) return;
 
     // Preserve scroll position to prevent layout shift when closing
     // a form in another file and opening one here
@@ -187,20 +190,20 @@ export default function App() {
       });
     }
 
-    setActiveCommentKey(changeKey);
+    setActiveCommentKey(key);
   };
 
   const handleSaveComment = (changeKey, filePath, text) => {
+    const key = scopedKey(filePath, changeKey);
     const lineNumber = findLineNumberForKey(changeKey);
-    setComments((prev) => ({
-      ...prev,
-      [changeKey]: { filePath, lineNumber, text },
-    }));
+    setComments((prev) => {
+      // Auto-open sidebar on first comment
+      if (Object.keys(prev).length === 0) {
+        setReviewSidebarOpen(true);
+      }
+      return { ...prev, [key]: { filePath, lineNumber, text } };
+    });
     setActiveCommentKey(null);
-    // Auto-open sidebar on first comment
-    if (Object.keys(comments).length === 0) {
-      setReviewSidebarOpen(true);
-    }
   };
 
   const handleCancelComment = () => {
@@ -222,12 +225,12 @@ export default function App() {
     }
   };
 
-  // Find the new-file line number for a change key by scanning hunks
-  const findLineNumberForKey = (changeKey) => {
+  // Find the new-file line number for a raw change key by scanning hunks
+  const findLineNumberForKey = (rawChangeKey) => {
     for (const file of files) {
       for (const hunk of file.hunks) {
         for (const change of hunk.changes) {
-          if (getChangeKey(change) === changeKey) {
+          if (getChangeKey(change) === rawChangeKey) {
             return getNewLineNumber(change);
           }
         }

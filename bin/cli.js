@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { assertGitRepo, getDiff } from '../src/git.js';
+import { fileURLToPath } from 'node:url';
+import { assertGitRepo, getDiff, getUntrackedDiff } from '../src/git.js';
 import { buildHtml } from '../src/template.js';
 import { openInBrowser } from '../src/open.js';
 
@@ -20,7 +21,7 @@ Arguments:
   ref         Git ref to diff against (branch, tag, commit, HEAD~N)`);
 }
 
-async function parseArgs(argv) {
+function parseArgs(argv) {
   const args = argv.slice(2);
   let mode = 'default';
   let ref = null;
@@ -31,11 +32,8 @@ async function parseArgs(argv) {
       process.exit(0);
     }
     if (arg === '--version' || arg === '-v') {
-      const { readFileSync } = await import('node:fs');
-      const { dirname, join: pjoin } = await import('node:path');
-      const { fileURLToPath } = await import('node:url');
       const __dir = dirname(fileURLToPath(import.meta.url));
-      const pkg = JSON.parse(readFileSync(pjoin(__dir, '..', 'package.json'), 'utf-8'));
+      const pkg = JSON.parse(readFileSync(join(__dir, '..', 'package.json'), 'utf-8'));
       console.log(pkg.version);
       process.exit(0);
     }
@@ -71,12 +69,16 @@ async function parseArgs(argv) {
   return { mode, ref };
 }
 
-async function main() {
-  const { mode, ref } = await parseArgs(process.argv);
+function main() {
+  const { mode, ref } = parseArgs(process.argv);
 
   assertGitRepo();
 
-  const diffText = getDiff(mode, ref);
+  let diffText = getDiff(mode, ref);
+
+  if (mode === 'default' || mode === 'all') {
+    diffText += getUntrackedDiff();
+  }
 
   if (!diffText.trim()) {
     console.log('No changes to review.');
@@ -91,7 +93,9 @@ async function main() {
   openInBrowser(outPath);
 }
 
-main().catch((err) => {
+try {
+  main();
+} catch (err) {
   console.error(err.message);
   process.exit(1);
-});
+}

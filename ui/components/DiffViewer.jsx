@@ -175,18 +175,22 @@ function FileDiff({ file, viewType, isCollapsed, onToggleCollapse, comments, act
   const isBinary = file.hunks.length === 0;
 
   // Build widgets map: changeKey -> ReactElement for comments
+  // Comments and activeCommentKey are scoped as "filePath:changeKey" to avoid collisions across files
+  const scopedKey = (changeKey) => `${path}:${changeKey}`;
+
   const widgets = useMemo(() => {
     const w = {};
     // All changes across hunks
     const allChanges = file.hunks.flatMap((h) => h.changes);
     for (const change of allChanges) {
       const key = getChangeKey(change);
-      const comment = comments[key];
-      const isActive = activeCommentKey === key;
+      const scoped = scopedKey(key);
+      const comment = comments[scoped];
+      const isActive = activeCommentKey === scoped;
       if (comment || isActive) {
         w[key] = (
           <CommentWidget
-            changeKey={key}
+            changeKey={scoped}
             filePath={path}
             comment={comment}
             activeCommentKey={activeCommentKey}
@@ -299,10 +303,11 @@ export default function DiffViewer({ files, viewType, collapsedFiles, onToggleCo
     <div className="p-4">
       {files.map((file) => {
         const path = getFilePath(file);
-        // Filter comments for this file
+        // Filter comments for this file (keys are scoped as "filePath:changeKey")
         const fileComments = {};
+        const prefix = `${path}:`;
         for (const [key, comment] of Object.entries(comments)) {
-          if (comment.filePath === path) {
+          if (key.startsWith(prefix)) {
             fileComments[key] = comment;
           }
         }
